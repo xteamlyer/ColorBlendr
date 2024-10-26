@@ -2,17 +2,21 @@ package com.drdisagree.colorblendr.utils
 
 import android.content.Context
 import android.graphics.Color
+import android.os.Build
 import android.os.RemoteException
 import android.util.Log
 import com.drdisagree.colorblendr.ColorBlendr.Companion.rootConnection
 import com.drdisagree.colorblendr.ColorBlendr.Companion.shizukuConnection
 import com.drdisagree.colorblendr.R
 import com.drdisagree.colorblendr.common.Const
+import com.drdisagree.colorblendr.common.Const.workingMethod
 import com.drdisagree.colorblendr.config.RPrefs
 import com.drdisagree.colorblendr.config.RPrefs.getBoolean
 import com.drdisagree.colorblendr.config.RPrefs.getInt
 import com.drdisagree.colorblendr.extension.ThemeOverlayPackage
 import com.drdisagree.colorblendr.utils.ColorUtil.generateModifiedColors
+import com.drdisagree.colorblendr.utils.FabricatedUtil.assignPerAppColorsToOverlay
+import com.drdisagree.colorblendr.utils.FabricatedUtil.createDynamicOverlay
 import com.drdisagree.colorblendr.utils.fabricated.FabricatedOverlayResource
 
 @Suppress("unused")
@@ -24,7 +28,7 @@ object OverlayManager {
     private val colorNames: Array<Array<String>> = ColorUtil.colorNames
 
     fun enableOverlay(packageName: String) {
-        if (Const.workingMethod != Const.WorkMethod.ROOT) {
+        if (workingMethod != Const.WorkMethod.ROOT) {
             return
         }
 
@@ -48,7 +52,7 @@ object OverlayManager {
     }
 
     fun disableOverlay(packageName: String) {
-        if (Const.workingMethod != Const.WorkMethod.ROOT) {
+        if (workingMethod != Const.WorkMethod.ROOT) {
             return
         }
 
@@ -72,7 +76,7 @@ object OverlayManager {
     }
 
     fun isOverlayInstalled(packageName: String): Boolean {
-        if (Const.workingMethod != Const.WorkMethod.ROOT) {
+        if (workingMethod != Const.WorkMethod.ROOT) {
             return false
         }
 
@@ -97,7 +101,7 @@ object OverlayManager {
     }
 
     fun isOverlayEnabled(packageName: String): Boolean {
-        if (Const.workingMethod != Const.WorkMethod.ROOT) {
+        if (workingMethod != Const.WorkMethod.ROOT) {
             return false
         }
 
@@ -122,7 +126,7 @@ object OverlayManager {
     }
 
     fun uninstallOverlayUpdates(packageName: String) {
-        if (Const.workingMethod != Const.WorkMethod.ROOT) {
+        if (workingMethod != Const.WorkMethod.ROOT) {
             return
         }
 
@@ -146,7 +150,7 @@ object OverlayManager {
     }
 
     private fun registerFabricatedOverlay(fabricatedOverlay: FabricatedOverlayResource) {
-        if (Const.workingMethod != Const.WorkMethod.ROOT) {
+        if (workingMethod != Const.WorkMethod.ROOT) {
             return
         }
 
@@ -168,7 +172,7 @@ object OverlayManager {
     }
 
     fun unregisterFabricatedOverlay(packageName: String) {
-        if (Const.workingMethod != Const.WorkMethod.ROOT) {
+        if (workingMethod != Const.WorkMethod.ROOT) {
             return
         }
 
@@ -191,7 +195,7 @@ object OverlayManager {
         }
     }
 
-    suspend fun applyFabricatedColors(context: Context) {
+    fun applyFabricatedColors(context: Context) {
         if (!getBoolean(Const.THEMING_ENABLED, true) &&
             !getBoolean(Const.SHIZUKU_THEMING_ENABLED, true)
         ) {
@@ -251,11 +255,27 @@ object OverlayManager {
             }
         }
 
-        FabricatedUtil.createDynamicOverlay(
-            fabricatedOverlays[0],
+        fabricatedOverlays[0].createDynamicOverlay(
             paletteLight,
             paletteDark
         )
+
+        // Temporary workaround for Android 15 QPR1 beta 3 background color issue in settings.
+        // Currently, we set the status bar color to match the background color
+        // to achieve a uniform appearance when the background lightness is reduced.
+        // TODO: Remove once the Settings background color issue is resolved.
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // Light theme
+            fabricatedOverlays[0].setColor(
+                "primary_dark_device_default_settings_light", // status bar
+                fabricatedOverlays[0].getColor("system_surface_container_light") // background
+            )
+            // Dark theme
+            fabricatedOverlays[0].setColor(
+                "primary_dark_device_default_settings", // status bar
+                fabricatedOverlays[0].getColor("system_surface_container_dark") // background
+            )
+        }
 
         val selectedApps = Const.selectedFabricatedApps
 
@@ -274,6 +294,10 @@ object OverlayManager {
         }
 
         if (pitchBlackTheme) {
+            fabricatedOverlays[0].setColor(
+                "background_dark",
+                Color.BLACK
+            )
             fabricatedOverlays[0].setColor(
                 "surface_header_dark_sysui",
                 Color.BLACK
@@ -311,7 +335,7 @@ object OverlayManager {
         }
     }
 
-    suspend fun applyFabricatedColorsPerApp(
+    fun applyFabricatedColorsPerApp(
         context: Context,
         packageName: String,
         palette: ArrayList<ArrayList<Int>>?
@@ -352,7 +376,7 @@ object OverlayManager {
         }
     }
 
-    private suspend fun getFabricatedColorsPerApp(
+    private fun getFabricatedColorsPerApp(
         context: Context,
         packageName: String,
         palette: ArrayList<ArrayList<Int>>?
@@ -382,13 +406,13 @@ object OverlayManager {
             packageName
         )
 
-        FabricatedUtil.assignPerAppColorsToOverlay(fabricatedOverlay, paletteTemp)
+        fabricatedOverlay.assignPerAppColorsToOverlay(paletteTemp)
 
         return fabricatedOverlay
     }
 
     private fun applyFabricatedColorsNonRoot(context: Context): Boolean {
-        if (Const.workingMethod != Const.WorkMethod.SHIZUKU) {
+        if (workingMethod != Const.WorkMethod.SHIZUKU) {
             return false
         }
 
@@ -423,7 +447,7 @@ object OverlayManager {
     }
 
     private fun removeFabricatedColorsNonRoot(context: Context): Boolean {
-        if (Const.workingMethod != Const.WorkMethod.SHIZUKU) {
+        if (workingMethod != Const.WorkMethod.SHIZUKU) {
             return false
         }
 
