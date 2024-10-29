@@ -136,13 +136,14 @@ private fun FabricatedOverlayResource.applyPixelLauncherColors(
     pitchBlackTheme: Boolean
 ) {
     /*
-     * qsb_icon_tint_quaternary_mono = monochrome icon color
+     * qsb_icon_tint_quaternary_mono = monochrome icon color; removed in Android 15 QPR1 beta 3
+     * themed_icon_color = monochrome icon color; added in Android 15 QPR1 beta 3
      * themed_icon_background_color = monochrome icon background
      * material_color_surface_container_low = search bar color in homepage
      * material_color_surface_bright = search bar color in app drawer
      * material_color_surface_dim = app drawer background color
-     * folder_preview_xxx = folder preview background color
-     * folder_background_xxx = expanded folder background color
+     * folder_preview_dark/light = folder preview background color
+     * folder_background_dark/light = expanded folder background color
      */
 
     val isSemiTransparent = getBoolean(SEMI_TRANSPARENT_LAUNCHER_ICONS, false)
@@ -151,15 +152,21 @@ private fun FabricatedOverlayResource.applyPixelLauncherColors(
         val darkerIcon = getBoolean(DARKER_LAUNCHER_ICONS, false)
 
         setColor("qsb_icon_tint_quaternary_mono", palette[0][5])
+        setColor("themed_icon_color", palette[0][5])
 
         if (pitchBlackTheme) {
             val iconBgColor = if (isSemiTransparent) {
-                Color.BLACK.applyAlphaToColor(60)
+                Color.BLACK.applyAlphaToColor(80)
             } else {
                 Color.BLACK
             }
             val folderColor = if (isSemiTransparent) {
-                Color.BLACK.applyAlphaToColor(60)
+                Color.BLACK.applyAlphaToColor(80)
+            } else {
+                Color.BLACK
+            }
+            val appDrawerColor = if (isSemiTransparent) {
+                Color.BLACK.applyAlphaToColor(95)
             } else {
                 Color.BLACK
             }
@@ -167,17 +174,22 @@ private fun FabricatedOverlayResource.applyPixelLauncherColors(
             setColor("themed_icon_background_color", iconBgColor)
             setColor("material_color_surface_container_low", iconBgColor)
             setColor("material_color_surface_bright", palette[3][11])
-            setColor("material_color_surface_dim", Color.BLACK)
+            setColor("material_color_surface_dim", appDrawerColor)
             setColor("folder_preview_dark", folderColor)
             setColor("folder_background_dark", folderColor)
         } else {
             val iconBgColor = if (isSemiTransparent) {
-                (if (darkerIcon) palette[1][11] else palette[1][10]).applyAlphaToColor(60)
+                (if (darkerIcon) palette[1][11] else palette[1][10]).applyAlphaToColor(80)
             } else {
                 (if (darkerIcon) palette[1][11] else palette[1][10])
             }
             val folderColor = if (isSemiTransparent) {
-                palette[3][11].applyAlphaToColor(60)
+                palette[3][11].applyAlphaToColor(80)
+            } else {
+                palette[3][11]
+            }
+            val appDrawerColor = if (isSemiTransparent) {
+                palette[3][11].applyAlphaToColor(95)
             } else {
                 palette[3][11]
             }
@@ -185,7 +197,7 @@ private fun FabricatedOverlayResource.applyPixelLauncherColors(
             setColor("themed_icon_background_color", iconBgColor)
             setColor("material_color_surface_container_low", iconBgColor)
             setColor("material_color_surface_bright", palette[3][10])
-            setColor("material_color_surface_dim", palette[3][11])
+            setColor("material_color_surface_dim", appDrawerColor)
             setColor("folder_preview_dark", folderColor)
             setColor("folder_background_dark", folderColor)
         }
@@ -205,12 +217,18 @@ private fun FabricatedOverlayResource.applyPixelLauncherColors(
         } else {
             palette[3][1]
         }
+        val appDrawerColor = if (isSemiTransparent) {
+            palette[4][2].applyAlphaToColor(95)
+        } else {
+            palette[4][2]
+        }
 
         setColor("qsb_icon_tint_quaternary_mono", palette[0][9])
+        setColor("themed_icon_color", palette[0][9])
         setColor("themed_icon_background_color", iconBgColor)
         setColor("material_color_surface_container_low", iconBgColor)
         setColor("material_color_surface_bright", palette[3][1])
-        setColor("material_color_surface_dim", palette[4][2])
+        setColor("material_color_surface_dim", appDrawerColor)
         setColor("folder_preview_light", folderPreviewColor)
         setColor("folder_background_light", folderBackgroundColor)
     }
