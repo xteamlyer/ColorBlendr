@@ -1,0 +1,6 @@
+Changelog:
+
+• Fixed an issue where the screen off color update wasn't canceled when the screen was turned back on.
+• Updated translations.
+
+Translation credit goes to all the contributors on our Crowdin platform.
