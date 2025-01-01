@@ -34,11 +34,12 @@ import com.drdisagree.colorblendr.config.RPrefs.putInt
 import com.drdisagree.colorblendr.config.RPrefs.putLong
 import com.drdisagree.colorblendr.databinding.FragmentColorPaletteBinding
 import com.drdisagree.colorblendr.ui.viewmodels.SharedViewModel
-import com.drdisagree.colorblendr.utils.ColorSchemeUtil.stringToEnumMonetStyle
+import com.drdisagree.colorblendr.utils.ColorSchemeUtil.MONET.Companion.toEnumMonet
 import com.drdisagree.colorblendr.utils.ColorUtil
 import com.drdisagree.colorblendr.utils.ColorUtil.calculateTextColor
 import com.drdisagree.colorblendr.utils.ColorUtil.getSystemColors
 import com.drdisagree.colorblendr.utils.ColorUtil.intToHexColor
+import com.drdisagree.colorblendr.utils.MiscUtil.getOriginalString
 import com.drdisagree.colorblendr.utils.MiscUtil.setToolbarTitle
 import com.drdisagree.colorblendr.utils.OverlayManager.applyFabricatedColors
 import com.google.android.material.snackbar.Snackbar
@@ -299,10 +300,10 @@ class ColorPaletteFragment : Fragment() {
     private fun generateModifiedColors(): ArrayList<ArrayList<Int>>? {
         try {
             return ColorUtil.generateModifiedColors(
-                stringToEnumMonetStyle(
-                    requireContext(),
-                    RPrefs.getString(MONET_STYLE, getString(R.string.monet_tonalspot))!!
-                ),
+                RPrefs.getString(
+                    MONET_STYLE,
+                    R.string.monet_tonalspot.getOriginalString()
+                ).toEnumMonet(),
                 getInt(MONET_ACCENT_SATURATION, 100),
                 getInt(MONET_BACKGROUND_SATURATION, 100),
                 getInt(MONET_BACKGROUND_LIGHTNESS, 100),

@@ -13,7 +13,6 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
-import com.drdisagree.colorblendr.R
 import com.drdisagree.colorblendr.common.Const.MONET_ACCENT_SATURATION
 import com.drdisagree.colorblendr.common.Const.MONET_ACCURATE_SHADES
 import com.drdisagree.colorblendr.common.Const.MONET_BACKGROUND_LIGHTNESS
@@ -23,7 +22,8 @@ import com.drdisagree.colorblendr.common.Const.MONET_STYLE
 import com.drdisagree.colorblendr.config.RPrefs.getBoolean
 import com.drdisagree.colorblendr.config.RPrefs.getInt
 import com.drdisagree.colorblendr.config.RPrefs.getString
-import com.drdisagree.colorblendr.utils.ColorSchemeUtil.stringToEnumMonetStyle
+import com.drdisagree.colorblendr.utils.ColorSchemeUtil
+import com.drdisagree.colorblendr.utils.ColorSchemeUtil.MONET.Companion.toEnumMonet
 import com.drdisagree.colorblendr.utils.ColorUtil.calculateTextColor
 import com.drdisagree.colorblendr.utils.ColorUtil.generateModifiedColors
 import com.drdisagree.colorblendr.utils.SystemUtil
@@ -230,13 +230,10 @@ class WallColorPreview : View {
             try {
                 colorPalette = withContext(Dispatchers.IO) {
                     generateModifiedColors(
-                        stringToEnumMonetStyle(
-                            context!!,
-                            getString(
-                                MONET_STYLE,
-                                context!!.getString(R.string.monet_tonalspot)
-                            )!!
-                        ),
+                        getString(
+                            MONET_STYLE,
+                            ColorSchemeUtil.MONET.TONAL_SPOT.toString()
+                        ).toEnumMonet(),
                         color,
                         getInt(MONET_ACCENT_SATURATION, 100),
                         getInt(MONET_BACKGROUND_SATURATION, 100),

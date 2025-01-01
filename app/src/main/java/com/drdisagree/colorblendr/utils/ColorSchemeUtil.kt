@@ -2,7 +2,9 @@ package com.drdisagree.colorblendr.utils
 
 import android.content.Context
 import androidx.annotation.ColorInt
+import com.drdisagree.colorblendr.ColorBlendr.Companion.appContext
 import com.drdisagree.colorblendr.R
+import com.drdisagree.colorblendr.utils.MiscUtil.getOriginalString
 import com.drdisagree.colorblendr.utils.monet.dynamiccolor.DynamicScheme
 import com.drdisagree.colorblendr.utils.monet.hct.Hct
 import com.drdisagree.colorblendr.utils.monet.palettes.TonalPalette
@@ -71,47 +73,54 @@ object ColorSchemeUtil {
         return toneList
     }
 
-    fun stringToEnumMonetStyle(context: Context, enumString: String): MONET {
+    fun Int.getStyleNameForRootless(): String {
+        return when (this.getOriginalString()) {
+            R.string.monet_neutral.getOriginalString() -> "SPRITZ"
+            R.string.monet_vibrant.getOriginalString() -> "VIBRANT"
+            R.string.monet_expressive.getOriginalString() -> "EXPRESSIVE"
+            R.string.monet_rainbow.getOriginalString() -> "RAINBOW"
+            R.string.monet_fruitsalad.getOriginalString() -> "FRUIT_SALAD"
+            R.string.monet_content.getOriginalString() -> "CONTENT"
+            R.string.monet_monochrome.getOriginalString() -> "MONOCHROMATIC"
+            R.string.monet_fidelity.getOriginalString() -> "FIDELITY"
+            else -> "TONAL_SPOT"
+        }
+    }
+
+    fun stringToEnumMonetStyle(
+        context: Context = appContext,
+        enumString: String
+    ): MONET {
+        // compare both original string and localized string
         return when (enumString) {
-            context.getString(R.string.monet_neutral) -> {
-                MONET.SPRITZ
-            }
+            R.string.monet_neutral.getOriginalString(),
+            context.getString(R.string.monet_neutral) -> MONET.SPRITZ
 
-            context.getString(R.string.monet_monochrome) -> {
-                MONET.MONOCHROMATIC
-            }
+            R.string.monet_monochrome.getOriginalString(),
+            context.getString(R.string.monet_monochrome) -> MONET.MONOCHROMATIC
 
-            context.getString(R.string.monet_tonalspot) -> {
-                MONET.TONAL_SPOT
-            }
+            R.string.monet_tonalspot.getOriginalString(),
+            context.getString(R.string.monet_tonalspot) -> MONET.TONAL_SPOT
 
-            context.getString(R.string.monet_vibrant) -> {
-                MONET.VIBRANT
-            }
+            R.string.monet_vibrant.getOriginalString(),
+            context.getString(R.string.monet_vibrant) -> MONET.VIBRANT
 
-            context.getString(R.string.monet_rainbow) -> {
-                MONET.RAINBOW
-            }
+            R.string.monet_rainbow.getOriginalString(),
+            context.getString(R.string.monet_rainbow) -> MONET.RAINBOW
 
-            context.getString(R.string.monet_expressive) -> {
-                MONET.EXPRESSIVE
-            }
+            R.string.monet_expressive.getOriginalString(),
+            context.getString(R.string.monet_expressive) -> MONET.EXPRESSIVE
 
-            context.getString(R.string.monet_fidelity) -> {
-                MONET.FIDELITY
-            }
+            R.string.monet_fidelity.getOriginalString(),
+            context.getString(R.string.monet_fidelity) -> MONET.FIDELITY
 
-            context.getString(R.string.monet_content) -> {
-                MONET.CONTENT
-            }
+            R.string.monet_content.getOriginalString(),
+            context.getString(R.string.monet_content) -> MONET.CONTENT
 
-            context.getString(R.string.monet_fruitsalad) -> {
-                MONET.FRUIT_SALAD
-            }
+            R.string.monet_fruitsalad.getOriginalString(),
+            context.getString(R.string.monet_fruitsalad) -> MONET.FRUIT_SALAD
 
-            else -> {
-                MONET.TONAL_SPOT
-            }
+            else -> MONET.TONAL_SPOT
         }
     }
 
@@ -124,6 +133,16 @@ object ColorSchemeUtil {
         EXPRESSIVE,
         FIDELITY,
         CONTENT,
-        FRUIT_SALAD
+        FRUIT_SALAD;
+
+        override fun toString(): String {
+            return name
+        }
+
+        companion object {
+            fun String?.toEnumMonet(): MONET {
+                return entries.find { it.name.equals(this, ignoreCase = true) } ?: TONAL_SPOT
+            }
+        }
     }
 }

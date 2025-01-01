@@ -2,14 +2,18 @@ package com.drdisagree.colorblendr.utils
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.os.Parcelable
+import android.util.TypedValue
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
+import com.drdisagree.colorblendr.ColorBlendr.Companion.appContext
 import com.google.android.material.appbar.MaterialToolbar
 import org.json.JSONException
 import org.json.JSONObject
+import java.util.Locale
 
 object MiscUtil {
 
@@ -56,6 +60,18 @@ object MiscUtil {
         }
         return target
     }
+
+    fun Int.getOriginalString(): String {
+        val config = Configuration(appContext.resources.configuration)
+        config.setLocale(Locale("en"))
+        return appContext.createConfigurationContext(config).getString(this)
+    }
+
+    fun Context.toPx(dp: Int): Int = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP,
+        dp.toFloat(),
+        resources.displayMetrics
+    ).toInt()
 }
 
 inline fun <reified T : Parcelable> Intent.parcelable(key: String): T? = when {

@@ -7,7 +7,6 @@ import android.os.RemoteException
 import android.util.Log
 import com.drdisagree.colorblendr.ColorBlendr.Companion.rootConnection
 import com.drdisagree.colorblendr.ColorBlendr.Companion.shizukuConnection
-import com.drdisagree.colorblendr.R
 import com.drdisagree.colorblendr.common.Const
 import com.drdisagree.colorblendr.common.Const.FABRICATED_OVERLAY_NAME_APPS
 import com.drdisagree.colorblendr.common.Const.FABRICATED_OVERLAY_NAME_SYSTEM
@@ -23,10 +22,11 @@ import com.drdisagree.colorblendr.common.Const.MONET_STYLE
 import com.drdisagree.colorblendr.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.colorblendr.common.Const.selectedFabricatedApps
 import com.drdisagree.colorblendr.common.Const.workingMethod
-import com.drdisagree.colorblendr.config.RPrefs
 import com.drdisagree.colorblendr.config.RPrefs.getBoolean
 import com.drdisagree.colorblendr.config.RPrefs.getInt
+import com.drdisagree.colorblendr.config.RPrefs.getString
 import com.drdisagree.colorblendr.extension.ThemeOverlayPackage
+import com.drdisagree.colorblendr.utils.ColorSchemeUtil.MONET.Companion.toEnumMonet
 import com.drdisagree.colorblendr.utils.ColorUtil.generateModifiedColors
 import com.drdisagree.colorblendr.utils.ColorUtil.modifyBrightness
 import com.drdisagree.colorblendr.utils.FabricatedUtil.assignPerAppColorsToOverlay
@@ -220,10 +220,10 @@ object OverlayManager {
             return
         }
 
-        val style = ColorSchemeUtil.stringToEnumMonetStyle(
-            context,
-            RPrefs.getString(MONET_STYLE, context.getString(R.string.monet_tonalspot))!!
-        )
+        val style = getString(
+            MONET_STYLE,
+            ColorSchemeUtil.MONET.TONAL_SPOT.toString()
+        ).toEnumMonet()
         val monetAccentSaturation = getInt(MONET_ACCENT_SATURATION, 100)
         val monetBackgroundSaturation = getInt(MONET_BACKGROUND_SATURATION, 100)
         val monetBackgroundLightness = getInt(MONET_BACKGROUND_LIGHTNESS, 100)
@@ -339,7 +339,6 @@ object OverlayManager {
             }.forEach { (packageName) ->
                 add(
                     getFabricatedColorsPerApp(
-                        context,
                         packageName,
                         if (SystemUtil.isDarkMode) paletteDark else paletteLight
                     )
@@ -349,13 +348,11 @@ object OverlayManager {
     }
 
     fun applyFabricatedColorsPerApp(
-        context: Context,
         packageName: String,
         palette: ArrayList<ArrayList<Int>>?
     ) {
         registerFabricatedOverlay(
             getFabricatedColorsPerApp(
-                context,
                 packageName,
                 palette
             )
@@ -385,7 +382,6 @@ object OverlayManager {
     }
 
     private fun getFabricatedColorsPerApp(
-        context: Context,
         packageName: String,
         palette: ArrayList<ArrayList<Int>>?
     ): FabricatedOverlayResource {
@@ -393,13 +389,10 @@ object OverlayManager {
 
         if (paletteTemp == null) {
             paletteTemp = generateModifiedColors(
-                ColorSchemeUtil.stringToEnumMonetStyle(
-                    context,
-                    RPrefs.getString(
-                        MONET_STYLE,
-                        context.getString(R.string.monet_tonalspot)
-                    )!!
-                ),
+                getString(
+                    MONET_STYLE,
+                    ColorSchemeUtil.MONET.TONAL_SPOT.toString()
+                ).toEnumMonet(),
                 getInt(MONET_ACCENT_SATURATION, 100),
                 getInt(MONET_BACKGROUND_SATURATION, 100),
                 getInt(MONET_BACKGROUND_LIGHTNESS, 100),
