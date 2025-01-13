@@ -1,0 +1,45 @@
+name: Build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          
+      - name: set up JDK 22
+        uses: actions/setup-java@main
+        with:
+          java-version: '22'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Get application version name
+        run: echo "VERSION_NAME=$(${{github.workspace}}/gradlew -q printVersionName)" >> $GITHUB_ENV
+
+      - name: Bump application version code
+        uses: chkfung/android-version-actions@v1.2.3
+        with:
+          gradlePath: app/build.gradle.kts
+          versionCode: ${{github.run_number}}
+          versionName: "${{ env.VERSION_NAME }} Dev (#${{github.run_number}})"
+
+      - name: Build with Gradle
+        run: ./gradlew assembleRelease
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: "ColorBlendr v${{ env.VERSION_NAME }} Dev (#${{github.run_number}})"
+          path: app/build/outputs/apk/*
+          if-no-files-found: error
