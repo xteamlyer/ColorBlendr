@@ -1,30 +1,30 @@
 package com.drdisagree.colorblendr.utils
 
-import android.content.Context
 import android.graphics.Color
 import android.os.Build
 import android.os.RemoteException
 import android.util.Log
 import com.drdisagree.colorblendr.ColorBlendr.Companion.rootConnection
 import com.drdisagree.colorblendr.ColorBlendr.Companion.shizukuConnection
-import com.drdisagree.colorblendr.data.common.Const
-import com.drdisagree.colorblendr.data.common.Const.FABRICATED_OVERLAY_NAME_APPS
-import com.drdisagree.colorblendr.data.common.Const.FABRICATED_OVERLAY_NAME_SYSTEM
-import com.drdisagree.colorblendr.data.common.Const.FABRICATED_OVERLAY_NAME_SYSTEMUI
-import com.drdisagree.colorblendr.data.common.Const.FORCE_PITCH_BLACK_SETTINGS
-import com.drdisagree.colorblendr.data.common.Const.FRAMEWORK_PACKAGE
-import com.drdisagree.colorblendr.data.common.Const.MONET_ACCENT_SATURATION
-import com.drdisagree.colorblendr.data.common.Const.MONET_ACCURATE_SHADES
-import com.drdisagree.colorblendr.data.common.Const.MONET_BACKGROUND_LIGHTNESS
-import com.drdisagree.colorblendr.data.common.Const.MONET_BACKGROUND_SATURATION
-import com.drdisagree.colorblendr.data.common.Const.MONET_PITCH_BLACK_THEME
-import com.drdisagree.colorblendr.data.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.colorblendr.data.common.Const.selectedFabricatedApps
-import com.drdisagree.colorblendr.data.common.Const.workingMethod
-import com.drdisagree.colorblendr.data.config.Prefs.getBoolean
-import com.drdisagree.colorblendr.data.config.Prefs.getInt
+import com.drdisagree.colorblendr.data.common.Constant.FABRICATED_OVERLAY_NAME_APPS
+import com.drdisagree.colorblendr.data.common.Constant.FABRICATED_OVERLAY_NAME_SYSTEM
+import com.drdisagree.colorblendr.data.common.Constant.FABRICATED_OVERLAY_NAME_SYSTEMUI
+import com.drdisagree.colorblendr.data.common.Constant.FRAMEWORK_PACKAGE
+import com.drdisagree.colorblendr.data.common.Constant.SYSTEMUI_PACKAGE
+import com.drdisagree.colorblendr.data.common.Utilities.accurateShadesEnabled
+import com.drdisagree.colorblendr.data.common.Utilities.forcePitchBlackSettingsEnabled
+import com.drdisagree.colorblendr.data.common.Utilities.getAccentSaturation
+import com.drdisagree.colorblendr.data.common.Utilities.getBackgroundLightness
+import com.drdisagree.colorblendr.data.common.Utilities.getBackgroundSaturation
+import com.drdisagree.colorblendr.data.common.Utilities.getCurrentMonetStyle
+import com.drdisagree.colorblendr.data.common.Utilities.getSelectedFabricatedApps
+import com.drdisagree.colorblendr.data.common.Utilities.isRootMode
+import com.drdisagree.colorblendr.data.common.Utilities.isShizukuMode
+import com.drdisagree.colorblendr.data.common.Utilities.isShizukuThemingEnabled
+import com.drdisagree.colorblendr.data.common.Utilities.isThemingEnabled
+import com.drdisagree.colorblendr.data.common.Utilities.pitchBlackThemeEnabled
+import com.drdisagree.colorblendr.data.common.Utilities.tintedTextEnabled
 import com.drdisagree.colorblendr.extension.ThemeOverlayPackage
-import com.drdisagree.colorblendr.utils.ColorSchemeUtil.getCurrentMonetStyle
 import com.drdisagree.colorblendr.utils.ColorUtil.adjustLightness
 import com.drdisagree.colorblendr.utils.ColorUtil.generateModifiedColors
 import com.drdisagree.colorblendr.utils.ColorUtil.systemPaletteNames
@@ -40,7 +40,7 @@ object OverlayManager {
     private var mShizukuConnection = shizukuConnection
 
     fun enableOverlay(packageName: String) {
-        if (workingMethod != Const.WorkMethod.ROOT) {
+        if (!isRootMode()) {
             return
         }
 
@@ -64,7 +64,7 @@ object OverlayManager {
     }
 
     fun disableOverlay(packageName: String) {
-        if (workingMethod != Const.WorkMethod.ROOT) {
+        if (!isRootMode()) {
             return
         }
 
@@ -88,7 +88,7 @@ object OverlayManager {
     }
 
     fun isOverlayInstalled(packageName: String): Boolean {
-        if (workingMethod != Const.WorkMethod.ROOT) {
+        if (!isRootMode()) {
             return false
         }
 
@@ -113,7 +113,7 @@ object OverlayManager {
     }
 
     fun isOverlayEnabled(packageName: String): Boolean {
-        if (workingMethod != Const.WorkMethod.ROOT) {
+        if (!isRootMode()) {
             return false
         }
 
@@ -138,7 +138,7 @@ object OverlayManager {
     }
 
     fun uninstallOverlayUpdates(packageName: String) {
-        if (workingMethod != Const.WorkMethod.ROOT) {
+        if (!isRootMode()) {
             return
         }
 
@@ -162,7 +162,7 @@ object OverlayManager {
     }
 
     private fun registerFabricatedOverlay(fabricatedOverlay: FabricatedOverlayResource) {
-        if (workingMethod != Const.WorkMethod.ROOT) {
+        if (!isRootMode()) {
             return
         }
 
@@ -184,7 +184,7 @@ object OverlayManager {
     }
 
     fun unregisterFabricatedOverlay(packageName: String) {
-        if (workingMethod != Const.WorkMethod.ROOT) {
+        if (!isRootMode()) {
             return
         }
 
@@ -207,23 +207,21 @@ object OverlayManager {
         }
     }
 
-    fun applyFabricatedColors(context: Context) {
-        if (!getBoolean(Const.THEMING_ENABLED, true) &&
-            !getBoolean(Const.SHIZUKU_THEMING_ENABLED, true)
-        ) {
+    fun applyFabricatedColors() {
+        if (!isThemingEnabled() && !isShizukuThemingEnabled()) {
             return
         }
 
-        if (applyFabricatedColorsNonRoot(context)) {
+        if (applyFabricatedColorsNonRoot()) {
             return
         }
 
         val style = getCurrentMonetStyle()
-        val monetAccentSaturation = getInt(MONET_ACCENT_SATURATION, 100)
-        val monetBackgroundSaturation = getInt(MONET_BACKGROUND_SATURATION, 100)
-        val monetBackgroundLightness = getInt(MONET_BACKGROUND_LIGHTNESS, 100)
-        val pitchBlackTheme = getBoolean(MONET_PITCH_BLACK_THEME, false)
-        val accurateShades = getBoolean(MONET_ACCURATE_SHADES, true)
+        val monetAccentSaturation = getAccentSaturation()
+        val monetBackgroundSaturation = getBackgroundSaturation()
+        val monetBackgroundLightness = getBackgroundLightness()
+        val pitchBlackTheme = pitchBlackThemeEnabled()
+        val accurateShades = accurateShadesEnabled()
 
         val paletteLight = generateModifiedColors(
             style = style,
@@ -276,9 +274,7 @@ object OverlayManager {
                         // TODO: Remove once the Settings background color issue is resolved.
                         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                             // Pitch black settings workaround
-                            if (pitchBlackTheme && isDarkMode &&
-                                getBoolean(FORCE_PITCH_BLACK_SETTINGS, false)
-                            ) {
+                            if (pitchBlackTheme && isDarkMode && forcePitchBlackSettingsEnabled()) {
                                 setColor(
                                     "system_surface_container_dark",
                                     adjustLightness(
@@ -310,7 +306,7 @@ object OverlayManager {
                             setColor(systemPaletteNames[4][11], Color.BLACK)
                         }
 
-                        if (!getBoolean(Const.TINT_TEXT_COLOR, true)) {
+                        if (!tintedTextEnabled()) {
                             setColor("text_color_primary_device_default_dark", Color.WHITE)
                             setColor("text_color_secondary_device_default_dark", -0x4c000001)
                             setColor("text_color_primary_device_default_light", Color.BLACK)
@@ -329,7 +325,7 @@ object OverlayManager {
                 }
             )
 
-            selectedFabricatedApps.filter { (packageName, isSelected) ->
+            getSelectedFabricatedApps().filter { (packageName, isSelected) ->
                 isSelected == java.lang.Boolean.TRUE && SystemUtil.isAppInstalled(packageName)
             }.forEach { (packageName) ->
                 add(
@@ -354,13 +350,13 @@ object OverlayManager {
         )
     }
 
-    fun removeFabricatedColors(context: Context) {
-        if (removeFabricatedColorsNonRoot(context)) {
+    fun removeFabricatedColors() {
+        if (removeFabricatedColorsNonRoot()) {
             return
         }
 
         ArrayList<String>().apply {
-            selectedFabricatedApps.filter { (_, isSelected) ->
+            getSelectedFabricatedApps().filter { (_, isSelected) ->
                 isSelected == java.lang.Boolean.TRUE
             }.forEach { (packageName) ->
                 add(
@@ -385,11 +381,11 @@ object OverlayManager {
         if (paletteTemp == null) {
             paletteTemp = generateModifiedColors(
                 getCurrentMonetStyle(),
-                getInt(MONET_ACCENT_SATURATION, 100),
-                getInt(MONET_BACKGROUND_SATURATION, 100),
-                getInt(MONET_BACKGROUND_LIGHTNESS, 100),
-                getBoolean(MONET_PITCH_BLACK_THEME, false),
-                getBoolean(MONET_ACCURATE_SHADES, true),
+                getAccentSaturation(),
+                getBackgroundSaturation(),
+                getBackgroundLightness(),
+                pitchBlackThemeEnabled(),
+                accurateShadesEnabled(),
                 modifyPitchBlack = false
             )
         }
@@ -402,12 +398,12 @@ object OverlayManager {
         }
     }
 
-    private fun applyFabricatedColorsNonRoot(context: Context): Boolean {
-        if (workingMethod != Const.WorkMethod.SHIZUKU) {
+    private fun applyFabricatedColorsNonRoot(): Boolean {
+        if (!isShizukuMode()) {
             return false
         }
 
-        if (!ShizukuUtil.isShizukuAvailable || !ShizukuUtil.hasShizukuPermission(context)) {
+        if (!ShizukuUtil.isShizukuAvailable || !ShizukuUtil.hasShizukuPermission()) {
             Log.w(TAG, "Shizuku permission not available")
             return true
         }
@@ -437,12 +433,12 @@ object OverlayManager {
         return true
     }
 
-    private fun removeFabricatedColorsNonRoot(context: Context): Boolean {
-        if (workingMethod != Const.WorkMethod.SHIZUKU) {
+    private fun removeFabricatedColorsNonRoot(): Boolean {
+        if (!isShizukuMode()) {
             return false
         }
 
-        if (!ShizukuUtil.isShizukuAvailable || !ShizukuUtil.hasShizukuPermission(context)) {
+        if (!ShizukuUtil.isShizukuAvailable || !ShizukuUtil.hasShizukuPermission()) {
             Log.w(TAG, "Shizuku permission not available")
             return true
         }

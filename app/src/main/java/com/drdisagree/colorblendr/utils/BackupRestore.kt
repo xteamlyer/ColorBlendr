@@ -1,26 +1,22 @@
 package com.drdisagree.colorblendr.utils
 
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import com.drdisagree.colorblendr.ColorBlendr.Companion.appContext
-import com.drdisagree.colorblendr.data.common.Const
-import com.drdisagree.colorblendr.data.common.Const.DATABASE_NAME
-import com.drdisagree.colorblendr.data.common.Const.EXCLUDED_PREFS_FROM_BACKUP
-import com.drdisagree.colorblendr.data.common.Const.MONET_SEED_COLOR
-import com.drdisagree.colorblendr.data.common.Const.MONET_SEED_COLOR_ENABLED
-import com.drdisagree.colorblendr.data.common.Const.SAVED_CUSTOM_MONET_STYLES
-import com.drdisagree.colorblendr.data.common.Const.THEMING_ENABLED
-import com.drdisagree.colorblendr.data.common.Const.WALLPAPER_COLOR_LIST
-import com.drdisagree.colorblendr.data.common.Const.workingMethod
+import com.drdisagree.colorblendr.data.common.Constant
+import com.drdisagree.colorblendr.data.common.Constant.DATABASE_NAME
+import com.drdisagree.colorblendr.data.common.Constant.EXCLUDED_PREFS_FROM_BACKUP
+import com.drdisagree.colorblendr.data.common.Constant.MONET_SEED_COLOR
+import com.drdisagree.colorblendr.data.common.Constant.MONET_SEED_COLOR_ENABLED
+import com.drdisagree.colorblendr.data.common.Constant.SAVED_CUSTOM_MONET_STYLES
+import com.drdisagree.colorblendr.data.common.Constant.THEMING_ENABLED
+import com.drdisagree.colorblendr.data.common.Constant.WALLPAPER_COLOR_LIST
 import com.drdisagree.colorblendr.data.config.Prefs.getAllPrefs
 import com.drdisagree.colorblendr.data.config.Prefs.preferenceEditor
 import com.drdisagree.colorblendr.data.database.appDatabase
 import com.drdisagree.colorblendr.data.models.CustomStyleModel
 import com.drdisagree.colorblendr.data.repository.CustomStyleRepository
 import com.google.gson.reflect.TypeToken
-import com.jakewharton.processphoenix.ProcessPhoenix
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
@@ -152,14 +148,6 @@ object BackupRestore {
 
                 tempDir.deleteRecursively()
 
-                // Restart app with delay to load new database,
-                // otherwise user might think that app crashed
-                if (workingMethod == Const.WorkMethod.ROOT) {
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        ProcessPhoenix.triggerRebirth(appContext)
-                    }, 3000)
-                }
-
                 true
             } catch (e: Exception) {
                 Log.e(TAG, "Error during restore", e)
@@ -229,7 +217,7 @@ object BackupRestore {
             val seedColor = newPrefs[MONET_SEED_COLOR] as? Int
             val wallpaperColors = allPrefs[WALLPAPER_COLOR_LIST] as? String
             val colorAvailable = if (seedColor != null && wallpaperColors != null) {
-                Const.GSON.fromJson<ArrayList<Int?>?>(
+                Constant.GSON.fromJson<ArrayList<Int?>?>(
                     wallpaperColors,
                     object : TypeToken<ArrayList<Int?>?>() {}.type
                 )?.contains(seedColor) ?: false
@@ -242,7 +230,7 @@ object BackupRestore {
              */
             val savedCustomStyles = newPrefs[SAVED_CUSTOM_MONET_STYLES] as? String
             if (!savedCustomStyles.isNullOrEmpty()) {
-                val customStyles: ArrayList<CustomStyleModel> = Const.GSON.fromJson(
+                val customStyles: ArrayList<CustomStyleModel> = Constant.GSON.fromJson(
                     savedCustomStyles,
                     object : TypeToken<ArrayList<CustomStyleModel>>() {}.type
                 )
