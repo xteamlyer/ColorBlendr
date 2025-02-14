@@ -87,7 +87,7 @@ class BroadcastListener : BroadcastReceiver() {
                     if (lastUiMode != newUiMode) {
                         delay(1000)
                         validateRootAndUpdateColors(context) {
-                            updateAllColors(context)
+                            updateAllColors()
                         }
                     }
 
@@ -126,7 +126,7 @@ class BroadcastListener : BroadcastReceiver() {
                 delay(10000)
                 cooldownTime = 5000
             }
-            updateAllColors(context)
+            updateAllColors()
         }
     }
 
@@ -153,7 +153,7 @@ class BroadcastListener : BroadcastReceiver() {
         if (requiresUpdate || force) {
             requiresUpdate = false
             validateRootAndUpdateColors(context) {
-                updateAllColors(context)
+                updateAllColors()
             }
         }
     }
@@ -205,7 +205,7 @@ class BroadcastListener : BroadcastReceiver() {
         }
     }
 
-    private fun updateAllColors(context: Context) {
+    private fun updateAllColors() {
         if ((!isThemingEnabled() && !isShizukuThemingEnabled()) || isRootOrShizukuUnknown()) return
 
         if (abs(System.currentTimeMillis() - getLastColorAppliedTimestamp()) >= cooldownTime) {

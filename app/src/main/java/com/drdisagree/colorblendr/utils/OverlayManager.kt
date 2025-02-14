@@ -56,10 +56,7 @@ object OverlayManager {
         try {
             mRootConnection!!.enableOverlay(listOf(packageName))
         } catch (e: RemoteException) {
-            Log.e(
-                TAG,
-                "Failed to enable overlay: $packageName", e
-            )
+            Log.e(TAG, "Failed to enable overlay: $packageName", e)
         }
     }
 
@@ -80,10 +77,7 @@ object OverlayManager {
         try {
             mRootConnection!!.disableOverlay(listOf(packageName))
         } catch (e: RemoteException) {
-            Log.e(
-                TAG,
-                "Failed to disable overlay: $packageName", e
-            )
+            Log.e(TAG, "Failed to disable overlay: $packageName", e)
         }
     }
 
@@ -104,10 +98,7 @@ object OverlayManager {
         try {
             return mRootConnection!!.isOverlayInstalled(packageName)
         } catch (e: RemoteException) {
-            Log.e(
-                TAG,
-                "Failed to check if overlay is installed: $packageName", e
-            )
+            Log.e(TAG, "Failed to check if overlay is installed: $packageName", e)
             return false
         }
     }
@@ -129,10 +120,7 @@ object OverlayManager {
         try {
             return mRootConnection!!.isOverlayEnabled(packageName)
         } catch (e: RemoteException) {
-            Log.e(
-                TAG,
-                "Failed to check if overlay is enabled: $packageName", e
-            )
+            Log.e(TAG, "Failed to check if overlay is enabled: $packageName", e)
             return false
         }
     }
@@ -154,10 +142,7 @@ object OverlayManager {
         try {
             mRootConnection!!.uninstallOverlayUpdates(packageName)
         } catch (e: RemoteException) {
-            Log.e(
-                TAG,
-                "Failed to uninstall overlay updates: $packageName", e
-            )
+            Log.e(TAG, "Failed to uninstall overlay updates: $packageName", e)
         }
     }
 
@@ -200,10 +185,7 @@ object OverlayManager {
         try {
             mRootConnection!!.unregisterFabricatedOverlay(packageName)
         } catch (e: RemoteException) {
-            Log.e(
-                TAG,
-                "Failed to unregister fabricated overlay: $packageName", e
-            )
+            Log.e(TAG, "Failed to unregister fabricated overlay: $packageName", e)
         }
     }
 
