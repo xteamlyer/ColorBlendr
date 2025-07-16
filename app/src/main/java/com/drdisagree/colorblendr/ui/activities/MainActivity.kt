@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
@@ -33,6 +34,8 @@ import com.drdisagree.colorblendr.databinding.ActivityMainBinding
 import com.drdisagree.colorblendr.service.RestartBroadcastReceiver.Companion.scheduleJob
 import com.drdisagree.colorblendr.ui.fragments.HomeFragment
 import com.drdisagree.colorblendr.ui.fragments.onboarding.OnboardingFragment
+import com.drdisagree.colorblendr.ui.viewmodels.ColorsViewModel
+import com.drdisagree.colorblendr.ui.viewmodels.StylesViewModel
 import com.drdisagree.colorblendr.utils.app.parcelable
 import com.drdisagree.colorblendr.utils.wifiadb.AdbMdns
 import com.drdisagree.colorblendr.utils.wifiadb.AdbMdns.AdbFoundCallback
@@ -46,6 +49,8 @@ class MainActivity : AppCompatActivity() {
     private var adbMdns: AdbMdns? = null
     private val timeoutHandler: Handler = Handler(Looper.getMainLooper())
     private var timeoutRunnable: Runnable? = null
+    private val colorsViewModel: ColorsViewModel by viewModels()
+    private val stylesViewModel: StylesViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -225,6 +230,8 @@ class MainActivity : AppCompatActivity() {
             newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_NO
         ) {
             recreate()
+            colorsViewModel.refreshData()
+            stylesViewModel.refreshData()
         }
     }
 

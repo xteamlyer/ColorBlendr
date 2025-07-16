@@ -7,7 +7,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
-import androidx.fragment.app.Fragment
 import com.drdisagree.colorblendr.R
 import com.drdisagree.colorblendr.data.common.Constant.PIXEL_LAUNCHER
 import com.drdisagree.colorblendr.data.common.Utilities.customColorEnabled
@@ -32,6 +31,8 @@ import com.drdisagree.colorblendr.data.common.Utilities.setSemiTransparentLaunch
 import com.drdisagree.colorblendr.data.common.Utilities.setTertiaryColorValue
 import com.drdisagree.colorblendr.data.common.Utilities.updateColorAppliedTimestamp
 import com.drdisagree.colorblendr.databinding.FragmentSettingsAdvancedBinding
+import com.drdisagree.colorblendr.ui.widgets.colorpickerdialog.dialogs.ColorPickerDialog
+import com.drdisagree.colorblendr.ui.widgets.colorpickerdialog.views.picker.ImagePickerView
 import com.drdisagree.colorblendr.utils.app.MiscUtil.setToolbarTitle
 import com.drdisagree.colorblendr.utils.app.SystemUtil
 import com.drdisagree.colorblendr.utils.manager.OverlayManager.applyFabricatedColors
@@ -40,10 +41,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.jfenn.colorpickerdialog.dialogs.ColorPickerDialog
-import me.jfenn.colorpickerdialog.views.picker.ImagePickerView
 
-class SettingsAdvancedFragment : Fragment() {
+class SettingsAdvancedFragment : BaseFragment() {
 
     private lateinit var binding: FragmentSettingsAdvancedBinding
     private val hasPixelLauncher: Boolean = SystemUtil.isAppInstalled(PIXEL_LAUNCHER)
@@ -63,7 +62,7 @@ class SettingsAdvancedFragment : Fragment() {
         binding.secondaryColorPicker.previewColor = monetSecondaryColor
         binding.secondaryColorPicker.setOnClickListener {
             ColorPickerDialog()
-                .withCornerRadius(10f)
+                .withCornerRadius(24f)
                 .withColor(monetSecondaryColor)
                 .withAlphaEnabled(false)
                 .withPicker(ImagePickerView::class.java)
@@ -87,7 +86,7 @@ class SettingsAdvancedFragment : Fragment() {
         binding.tertiaryColorPicker.previewColor = monetTertiaryColor
         binding.tertiaryColorPicker.setOnClickListener {
             ColorPickerDialog()
-                .withCornerRadius(10f)
+                .withCornerRadius(24f)
                 .withColor(monetTertiaryColor)
                 .withAlphaEnabled(false)
                 .withPicker(ImagePickerView::class.java)
