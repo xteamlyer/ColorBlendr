@@ -38,8 +38,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.drdisagree.colorblendr.ui.widgets.colorpickerdialog.dialogs.ColorPickerDialog
-import com.drdisagree.colorblendr.ui.widgets.colorpickerdialog.views.picker.ImagePickerView
+import me.jfenn.colorpickerdialog.dialogs.ColorPickerDialog
+import me.jfenn.colorpickerdialog.views.picker.ImagePickerView
 
 class ColorPaletteFragment : BaseFragment() {
 
