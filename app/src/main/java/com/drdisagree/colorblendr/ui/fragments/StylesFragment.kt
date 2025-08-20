@@ -202,7 +202,6 @@ class StylesFragment : BaseFragment() {
         )
 
         customStyleRepository.saveCustomStyle(newStyle)
-
         styleAdapter?.addStyle(
             StyleModel(
                 isEnabled = true,
@@ -210,6 +209,7 @@ class StylesFragment : BaseFragment() {
                 customStyle = newStyle
             )
         )
+        stylesViewModel.refreshData()
     }
 
     suspend fun editCustomStyle(
@@ -234,7 +234,6 @@ class StylesFragment : BaseFragment() {
             )
 
             customStyleRepository.updateCustomStyle(updatedStyle)
-
             styleAdapter?.updateStyle(
                 StyleModel(
                     isEnabled = true,
@@ -242,6 +241,7 @@ class StylesFragment : BaseFragment() {
                     customStyle = updatedStyle
                 )
             )
+            stylesViewModel.refreshData()
         }
     }
 
@@ -252,6 +252,7 @@ class StylesFragment : BaseFragment() {
         if (customStyle != null) {
             customStyleRepository.deleteCustomStyle(customStyle)
             styleAdapter?.removeStyle(customStyle = customStyle)
+            stylesViewModel.refreshData()
         }
     }
 

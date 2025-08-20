@@ -137,7 +137,7 @@ class StylePreviewAdapter(
                             bottomMargin
                         )
                     }
-                    setLayoutParams(this)
+                    layoutParams = this
                 }
             }
         }
