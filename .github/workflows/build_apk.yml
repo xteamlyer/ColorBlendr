@@ -2,6 +2,7 @@ name: Build Release APK
 
 on:
   workflow_dispatch:
+  push: 
 
 jobs:
   build:
@@ -10,9 +11,8 @@ jobs:
 
     steps:
       - name: Checkout fdroid branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
-          ref: fdroid
           fetch-depth: 0
 
       - name: Show Git info
