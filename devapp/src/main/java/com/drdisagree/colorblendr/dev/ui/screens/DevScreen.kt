@@ -2,7 +2,10 @@ package com.drdisagree.colorblendr.dev.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -21,6 +24,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
@@ -67,8 +72,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.drdisagree.colorblendr.dev.R
 import com.drdisagree.colorblendr.dev.data.models.BlockedEntry
@@ -83,6 +88,7 @@ import com.drdisagree.colorblendr.dev.ui.components.KeyGate
 import com.drdisagree.colorblendr.dev.ui.components.PendingCard
 import com.drdisagree.colorblendr.dev.ui.components.SegmentedTabs
 import com.drdisagree.colorblendr.dev.ui.components.StackedSnackbarHost
+import com.drdisagree.colorblendr.dev.ui.components.screen
 import com.drdisagree.colorblendr.dev.ui.navigation.Routes
 import com.drdisagree.colorblendr.dev.ui.theme.DevTheme
 import com.drdisagree.colorblendr.dev.ui.viewmodels.DevViewModel
@@ -139,15 +145,29 @@ fun DevScreen(openPendingTick: Int = 0) {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        fun AnimatedContentTransitionScope<NavBackStackEntry>.isPop(): Boolean {
+            val current = navController.currentBackStackEntry
+            val previous = navController.previousBackStackEntry
+            return targetState == previous || (initialState != current && initialState != previous)
+        }
+
+        fun AnimatedContentTransitionScope<NavBackStackEntry>.enter(): EnterTransition =
+            slideInHorizontally { if (isPop()) -it else it }
+
+        fun AnimatedContentTransitionScope<NavBackStackEntry>.exit(): ExitTransition =
+            slideOutHorizontally { if (isPop()) it else -it }
+
         NavHost(
             navController = navController,
             startDestination = Routes.HOME,
-            enterTransition = { slideInHorizontally { it } },
-            exitTransition = { slideOutHorizontally { -it } },
-            popEnterTransition = { slideInHorizontally { -it } },
-            popExitTransition = { slideOutHorizontally { it } }
+            enterTransition = { enter() },
+            exitTransition = { exit() },
+            popEnterTransition = { enter() },
+            popExitTransition = { exit() },
+            predictivePopEnterTransition = { enter() },
+            predictivePopExitTransition = { exit() }
         ) {
-            composable(Routes.HOME) {
+            screen(Routes.HOME) {
                 HomeContent(
                     authorized = authorized,
                     loading = loading,
@@ -171,7 +191,7 @@ fun DevScreen(openPendingTick: Int = 0) {
                     onOpenDetail = { navController.navigate(Routes.detail(it.id)) }
                 )
             }
-            composable(Routes.SETTINGS) {
+            screen(Routes.SETTINGS) {
                 SettingsScreen(
                     onBack = { navController.popBackStack() },
                     onLogout = {
@@ -180,7 +200,7 @@ fun DevScreen(openPendingTick: Int = 0) {
                     }
                 )
             }
-            composable(Routes.DETAIL) { entry ->
+            screen(Routes.DETAIL) { entry ->
                 val id = entry.arguments?.getString(Routes.ARG_SUBMISSION_ID)
                 val latest = pending?.find { it.id == id }
                 val lastKnown = remember { mutableStateOf(latest) }
@@ -259,9 +279,9 @@ private fun HomeContent(
     val pendingListState = rememberLazyListState()
     val blockedListState = rememberLazyListState()
 
-    var adminKey by rememberSaveable { mutableStateOf(initialKey) }
+    val keyState = rememberTextFieldState(initialKey)
     var tab by rememberSaveable { mutableIntStateOf(0) }
-    var query by rememberSaveable { mutableStateOf("") }
+    val searchState = rememberTextFieldState()
     var searchVisible by rememberSaveable { mutableStateOf(false) }
     var newestFirst by rememberSaveable { mutableStateOf(true) }
     var blockTarget by remember { mutableStateOf<PendingSubmission?>(null) }
@@ -321,10 +341,9 @@ private fun HomeContent(
             target = selectedItems.first(),
             onDismiss = { bulkBlock = false },
             onConfirm = { reason ->
-                val targets = selectedItems
                 bulkBlock = false
                 selectedIds = emptySet()
-                onBlockAll(targets, reason)
+                onBlockAll(selectedItems, reason)
             }
         )
     }
@@ -459,7 +478,7 @@ private fun HomeContent(
                             IconButton(
                                 onClick = {
                                     searchVisible = !searchVisible
-                                    if (!searchVisible) query = ""
+                                    if (!searchVisible) searchState.clearText()
                                 },
                                 shapes = IconButtonDefaults.shapes()
                             ) {
@@ -491,10 +510,9 @@ private fun HomeContent(
     ) { innerPadding ->
         if (!authorized) {
             KeyGate(
-                adminKey = adminKey,
-                onKeyChange = { adminKey = it },
+                keyState = keyState,
                 loading = loading,
-                onUnlock = { onUnlock(adminKey) },
+                onUnlock = { onUnlock(keyState.text.toString()) },
                 modifier = Modifier.padding(innerPadding)
             )
             return@Scaffold
@@ -541,8 +559,7 @@ private fun HomeContent(
                         .padding(top = 8.dp)
                 ) {
                     CompactSearchField(
-                        query = query,
-                        onQueryChange = { query = it },
+                        state = searchState,
                         modifier = Modifier.weight(1f)
                     )
                     Box {
@@ -608,7 +625,7 @@ private fun HomeContent(
                 modifier = Modifier.fillMaxSize()
             ) {
                 AnimatedContent(
-                    targetState = Pair(tab, query.trim()),
+                    targetState = Pair(tab, searchState.text.trim().toString()),
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
                     label = "devTabs"
                 ) { (currentTab, trimmedQuery) ->

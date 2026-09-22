@@ -58,7 +58,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
@@ -82,7 +81,9 @@ import com.drdisagree.colorblendr.ui.compose.components.SnackbarVisibility
 import com.drdisagree.colorblendr.ui.compose.components.navBottomInset
 import com.drdisagree.colorblendr.ui.compose.components.showSnackbarReplacing
 import com.drdisagree.colorblendr.ui.compose.navigation.Routes
+import com.drdisagree.colorblendr.ui.compose.navigation.isPop
 import com.drdisagree.colorblendr.ui.compose.navigation.navigateSingleTop
+import com.drdisagree.colorblendr.ui.compose.navigation.screen
 import com.drdisagree.colorblendr.ui.compose.navigation.tabGroup
 import com.drdisagree.colorblendr.ui.compose.screens.about.AboutScreen
 import com.drdisagree.colorblendr.ui.compose.screens.about.CrashLogScreen
@@ -110,10 +111,10 @@ import com.drdisagree.colorblendr.utils.app.AppUtil.permissionsGranted
 import com.drdisagree.colorblendr.utils.app.AppUtil.requestStoragePermission
 import com.drdisagree.colorblendr.utils.community.TestThemeHolder
 import com.drdisagree.colorblendr.utils.community.communityColorScheme
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun HomeScreen(
@@ -402,13 +403,15 @@ fun HomeScreen(
                         NavHost(
                             navController = nestedNavController,
                             startDestination = Routes.COLORS,
-                            enterTransition = { enter(pop = false) },
-                            exitTransition = { exit(pop = false) },
-                            popEnterTransition = { enter(pop = true) },
-                            popExitTransition = { exit(pop = true) },
+                            enterTransition = { enter(pop = isPop(nestedNavController)) },
+                            exitTransition = { exit(pop = isPop(nestedNavController)) },
+                            popEnterTransition = { enter(pop = isPop(nestedNavController)) },
+                            popExitTransition = { exit(pop = isPop(nestedNavController)) },
+                            predictivePopEnterTransition = { enter(pop = isPop(nestedNavController)) },
+                            predictivePopExitTransition = { exit(pop = isPop(nestedNavController)) },
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            composable(Routes.COLORS) {
+                            screen(Routes.COLORS) {
                                 LaunchedEffect(Unit) {
                                     if (isShizukuMode()) {
                                         clearAllOverriddenColors()
@@ -427,11 +430,11 @@ fun HomeScreen(
                                     },
                                 )
                             }
-                            composable(Routes.THEME) { ThemeScreen() }
-                            composable(Routes.STYLES) {
+                            screen(Routes.THEME) { ThemeScreen() }
+                            screen(Routes.STYLES) {
                                 StylesScreen(stylesViewModel = stylesViewModel)
                             }
-                            composable(
+                            screen(
                                 route = Routes.SETTINGS,
                                 arguments = listOf(
                                     navArgument("restoreUri") {
@@ -463,40 +466,40 @@ fun HomeScreen(
                                     }
                                 )
                             }
-                            composable(Routes.COLOR_PALETTE) {
+                            screen(Routes.COLOR_PALETTE) {
                                 ColorPaletteScreen(
                                     colorPaletteViewModel = colorPaletteViewModel
                                 )
                             }
-                            composable(Routes.PER_APP_THEME) { PerAppThemeScreen() }
-                            composable(Routes.SETTINGS_ADVANCED) {
+                            screen(Routes.PER_APP_THEME) { PerAppThemeScreen() }
+                            screen(Routes.SETTINGS_ADVANCED) {
                                 SettingsAdvancedScreen(
                                     onNavigateToPerAppTheme = {
                                         nestedNavController.navigateSingleTop(Routes.PER_APP_THEME)
                                     }
                                 )
                             }
-                            composable(Routes.COMMUNITY) {
+                            screen(Routes.COMMUNITY) {
                                 CommunityScreen(
                                     onThemeClick = { themeId ->
                                         nestedNavController.navigateSingleTop("communityTheme/$themeId")
                                     }
                                 )
                             }
-                            composable(Routes.COMMUNITY_THEME) { entry ->
+                            screen(Routes.COMMUNITY_THEME) { entry ->
                                 entry.arguments?.getString("themeId")?.let { themeId ->
                                     CommunityThemeDetailsScreen(themeId = themeId)
                                 }
                             }
-                            composable(Routes.ABOUT) {
+                            screen(Routes.ABOUT) {
                                 AboutScreen(
                                     onNavigateToCrashLog = {
                                         nestedNavController.navigateSingleTop(Routes.CRASH_LOG)
                                     }
                                 )
                             }
-                            composable(Routes.CRASH_LOG) { CrashLogScreen() }
-                            composable(Routes.PRIVACY_POLICY) { PrivacyPolicyScreen() }
+                            screen(Routes.CRASH_LOG) { CrashLogScreen() }
+                            screen(Routes.PRIVACY_POLICY) { PrivacyPolicyScreen() }
                         }
                     }
 
