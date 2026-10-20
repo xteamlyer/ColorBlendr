@@ -132,6 +132,18 @@ object OverlayManager {
         }
     }
 
+    fun areOverlaysEnabled(packageNames: List<String>): BooleanArray {
+        if (packageNames.isEmpty()) return BooleanArray(0)
+        if (!isRootMode() || !ensureRootConnection()) return BooleanArray(packageNames.size)
+
+        return try {
+            mRootConnection.areOverlaysEnabled(packageNames)
+        } catch (e: RemoteException) {
+            Log.e(TAG, "Failed to check if overlays are enabled", e)
+            BooleanArray(packageNames.size)
+        }
+    }
+
     fun uninstallOverlayUpdates(packageName: String) {
         if (!isRootMode()) return
         if (!ensureRootConnection()) {
@@ -156,8 +168,6 @@ object OverlayManager {
 
         return try {
             mRootConnection.registerFabricatedOverlay(fabricatedOverlay)
-            mRootConnection.enableOverlayWithIdentifier(listOf(fabricatedOverlay.overlayName))
-            true
         } catch (e: RemoteException) {
             Log.e(TAG, "Failed to register fabricated overlay: " + fabricatedOverlay.overlayName, e)
             reportError(overlayError(e))
@@ -328,9 +338,11 @@ object OverlayManager {
         packageName: String,
         paletteDark: ArrayList<ArrayList<Int>>? = null,
         paletteLight: ArrayList<ArrayList<Int>>? = null
-    ) {
+    ): Boolean {
         ResourceUtil.clearLookupCache()
-        registerFabricatedOverlay(getFabricatedColorsPerApp(packageName, paletteLight, paletteDark))
+        return registerFabricatedOverlay(
+            getFabricatedColorsPerApp(packageName, paletteLight, paletteDark)
+        )
     }
 
     fun removeFabricatedColors(): Boolean {
