@@ -79,28 +79,28 @@ import com.drdisagree.colorblendr.data.common.Utilities.taskerIntegrationEnabled
 import com.drdisagree.colorblendr.data.common.Utilities.updateColorAppliedTimestamp
 import com.drdisagree.colorblendr.data.domain.AppScope
 import com.drdisagree.colorblendr.data.domain.PreviewController
-import com.drdisagree.colorblendr.data.domain.RefreshCoordinator
 import com.drdisagree.colorblendr.data.enums.MONET
 import com.drdisagree.colorblendr.ui.compose.components.AppToolbar
 import com.drdisagree.colorblendr.ui.compose.components.ColorPickerItem
-import com.drdisagree.colorblendr.ui.compose.components.LocalPreviewBottomInset
 import com.drdisagree.colorblendr.ui.compose.components.MenuItem
 import com.drdisagree.colorblendr.ui.compose.components.SingleChoiceDialog
 import com.drdisagree.colorblendr.ui.compose.components.SwitchItem
 import com.drdisagree.colorblendr.ui.compose.components.WidgetPosition
 import com.drdisagree.colorblendr.ui.compose.components.contentWidthLimit
+import com.drdisagree.colorblendr.ui.compose.components.previewContentPadding
 import com.drdisagree.colorblendr.ui.compose.theme.ColorBlendrTheme
 import com.drdisagree.colorblendr.ui.compose.utils.AdaptivePreviews
 import com.drdisagree.colorblendr.ui.compose.utils.rememberPrefState
 import com.drdisagree.colorblendr.utils.app.SystemUtil
+import com.drdisagree.colorblendr.utils.fabricated.FabricatedUtil.selectSettingsForPerAppTheme
 import com.drdisagree.colorblendr.utils.manager.OverlayManager.applyFabricatedColors
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.jfenn.colorpickerdialog.compose.dialogs.ColorPickerDialog
 import me.jfenn.colorpickerdialog.compose.dialogs.ColorPickerType
-import kotlin.time.Duration.Companion.milliseconds
 
 private const val TARGET_SECONDARY = "secondary"
 private const val TASKER_GUIDE_URL =
@@ -136,6 +136,12 @@ fun SettingsAdvancedScreen(
         scope.launch {
             PreviewController.updatePreview()
         }
+    }
+
+    fun blockedByPreview(): Boolean {
+        if (!PreviewController.isPreviewActive) return false
+        Toast.makeText(context, R.string.preview_pending_apply_first, Toast.LENGTH_SHORT).show()
+        return true
     }
 
     fun applyColorsNow() {
@@ -210,11 +216,11 @@ fun SettingsAdvancedScreen(
                         setCurrentMonetStyle(MONET.TONAL_SPOT)
                     }
 
-                    RefreshCoordinator.triggerRefresh()
                     updateColors()
                 }
             },
-            onDismiss = { showColorSpecDialog = false }
+            onDismiss = { showColorSpecDialog = false },
+            descriptions = resources.getStringArray(R.array.colorspec_version_descs).toList()
         )
     }
 
@@ -233,7 +239,7 @@ fun SettingsAdvancedScreen(
                     .fillMaxSize()
                     .contentWidthLimit()
                     .verticalScroll(scrollState)
-                    .padding(bottom = LocalPreviewBottomInset.current)
+                    .padding(previewContentPadding())
                     .padding(top = 16.dp)
             ) {
                 ColorPickerItem(
@@ -285,6 +291,7 @@ fun SettingsAdvancedScreen(
                     checked = screenOffUpdate,
                     position = WidgetPosition.Middle,
                     onCheckedChange = { isChecked ->
+                        if (blockedByPreview()) return@SwitchItem
                         screenOffUpdate = isChecked
                         setScreenOffColorUpdateEnabled(isChecked)
                         if (!isChecked) {
@@ -301,6 +308,7 @@ fun SettingsAdvancedScreen(
                     disabledReason = if (!rootMode) stringResource(R.string.root_required) else null,
                     position = WidgetPosition.Middle,
                     onCheckedChange = { isChecked ->
+                        if (blockedByPreview()) return@SwitchItem
                         modeSpecificThemes = isChecked
                         resetCustomStyleIfNotNull()
                         setModeSpecificThemesEnabled(isChecked)
@@ -356,6 +364,7 @@ fun SettingsAdvancedScreen(
                     },
                     position = WidgetPosition.Top,
                     onCheckedChange = { isChecked ->
+                        if (blockedByPreview()) return@SwitchItem
                         darkerIcons = isChecked
                         if (isChecked) {
                             savePixelLauncherInPerAppTheme()
@@ -377,6 +386,7 @@ fun SettingsAdvancedScreen(
                     },
                     position = WidgetPosition.Bottom,
                     onCheckedChange = { isChecked ->
+                        if (blockedByPreview()) return@SwitchItem
                         semiTransparentIcons = isChecked
                         if (isChecked) {
                             savePixelLauncherInPerAppTheme()
@@ -403,6 +413,7 @@ fun SettingsAdvancedScreen(
                             PreviewController.beginPreview()
                             resetCustomStyleIfNotNull()
                             setForcePitchBlackSettingsEnabled(isChecked)
+                            if (isChecked) selectSettingsForPerAppTheme()
                             updateColors()
                         }
                     )

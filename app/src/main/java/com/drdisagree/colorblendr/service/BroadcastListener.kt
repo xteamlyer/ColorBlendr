@@ -56,7 +56,9 @@ class BroadcastListener : BroadcastReceiver() {
         CoroutineScope(Dispatchers.Main).launch {
             when (intent.action) {
                 Intent.ACTION_BOOT_COMPLETED,
-                Intent.ACTION_LOCKED_BOOT_COMPLETED -> {
+                Intent.ACTION_LOCKED_BOOT_COMPLETED,
+                Intent.ACTION_MY_PACKAGE_REPLACED,
+                "android.intent.action.QUICKBOOT_POWERON" -> {
                     handleBootCompleted(context)
                 }
 
@@ -103,7 +105,6 @@ class BroadcastListener : BroadcastReceiver() {
                     handlePackageRemoved(context, intent)
                 }
 
-                Intent.ACTION_MY_PACKAGE_REPLACED,
                 Intent.ACTION_PACKAGE_REPLACED -> {
                     handlePackageReplaced(context, intent)
                 }
@@ -150,6 +151,12 @@ class BroadcastListener : BroadcastReceiver() {
 
             setWallpaperColorJson(currentWallpaperColors)
 
+            if (PreviewController.isPreviewActive) {
+                if (requiresUpdate || force) PreviewController.markSystemUpdatePending()
+                requiresUpdate = false
+                return
+            }
+
             if (!customColorEnabled()) {
                 setSeedColorValue(wallpaperColors[0])
             }
@@ -164,6 +171,8 @@ class BroadcastListener : BroadcastReceiver() {
     }
 
     private suspend fun handlePackageRemoved(context: Context, intent: Intent) {
+        if (intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) return
+
         intent.data?.schemeSpecificPart?.let { packageName ->
             val selectedApps: HashMap<String, Boolean> = getSelectedFabricatedApps()
 
@@ -198,7 +207,7 @@ class BroadcastListener : BroadcastReceiver() {
     private suspend fun validateRootAndUpdateColors(context: Context, method: suspend () -> Unit) {
         if (isRootMode() && RootConnectionProvider.isNotConnected) {
             RootConnectionProvider
-                .builder(context)
+                .builder()
                 .onSuccess {
                     CoroutineScope(Dispatchers.Main).launch {
                         method()
@@ -214,9 +223,12 @@ class BroadcastListener : BroadcastReceiver() {
     private fun updateAllColors(force: Boolean = false) {
         if ((!isThemingEnabled() && !isShizukuThemingEnabled() && !isWirelessAdbThemingEnabled())
             || isWorkMethodUnknown()
-            // Never auto-apply while the user is previewing changes.
-            || PreviewController.isPreviewActive
         ) return
+
+        if (PreviewController.isPreviewActive) {
+            PreviewController.markSystemUpdatePending()
+            return
+        }
 
         if (abs(getLastColorAppliedTimestamp() - System.currentTimeMillis()) >= cooldownTime || force) {
             updateColorAppliedTimestamp()

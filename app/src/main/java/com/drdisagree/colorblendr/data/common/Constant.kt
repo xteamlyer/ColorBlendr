@@ -65,12 +65,16 @@ object Constant {
     const val MONET_SEED_COLOR = "monetSeedColor"
     const val MONET_SECONDARY_COLOR = "monetSecondaryColor"
     const val MONET_TERTIARY_COLOR = "monetTertiaryColor"
-    const val MANUAL_OVERRIDE_COLORS = "manualOverrideColors"
     const val MONET_LAST_UPDATED = "monetLastUpdated"
     const val MONET_STYLE_ORIGINAL_NAME = "monetStyleOriginalName"
     const val WALLPAPER_COLOR_LIST = "wallpaperColorList"
     const val FABRICATED_OVERLAY_FOR_APPS_STATE = "fabricatedOverlayForAppsState"
     const val SHOW_PER_APP_THEME_WARN = "showPerAppThemeWarn"
+    const val SHOW_PALETTE_ROOT_HINT = "showPaletteRootHint"
+    const val SHOW_PALETTE_ROOTLESS_HINT = "showPaletteRootlessHint"
+    const val TOKEN_OVERRIDES = "tokenOverrides"
+    const val LEGACY_TOKENS = "legacyTokens"
+    const val APP_COLOR_OVERRIDES = "appColorOverrides"
     const val TINT_TEXT_COLOR = "tintTextColor"
     const val SHIZUKU_THEMING_ENABLED = "shizukuThemingEnabled"
     const val WIRELESS_ADB_THEMING_ENABLED = "wirelessAdbThemingEnabled"
@@ -89,26 +93,20 @@ object Constant {
     const val MONET_BACKGROUND_LIGHTNESS_LIGHT = "monetBackgroundLightnessValueLight"
 
     val MONET_ACCENT_SATURATION: String
-        get() = if (!modeSpecificThemesEnabled()) {
-            MONET_ACCENT_SATURATION_DARK
-        } else {
-            if (SystemUtil.isDarkMode) MONET_ACCENT_SATURATION_DARK
-            else MONET_ACCENT_SATURATION_LIGHT
-        }
+        get() = accentSaturationKey(SystemUtil.isDarkMode)
     val MONET_BACKGROUND_SATURATION: String
-        get() = if (!modeSpecificThemesEnabled()) {
-            MONET_BACKGROUND_SATURATION_DARK
-        } else {
-            if (SystemUtil.isDarkMode) MONET_BACKGROUND_SATURATION_DARK
-            else MONET_BACKGROUND_SATURATION_LIGHT
-        }
+        get() = backgroundSaturationKey(SystemUtil.isDarkMode)
     val MONET_BACKGROUND_LIGHTNESS: String
-        get() = if (!modeSpecificThemesEnabled()) {
-            MONET_BACKGROUND_LIGHTNESS_DARK
-        } else {
-            if (SystemUtil.isDarkMode) MONET_BACKGROUND_LIGHTNESS_DARK
-            else MONET_BACKGROUND_LIGHTNESS_LIGHT
-        }
+        get() = backgroundLightnessKey(SystemUtil.isDarkMode)
+
+    fun accentSaturationKey(isDark: Boolean): String =
+        if (isDark || !modeSpecificThemesEnabled()) MONET_ACCENT_SATURATION_DARK else MONET_ACCENT_SATURATION_LIGHT
+
+    fun backgroundSaturationKey(isDark: Boolean): String =
+        if (isDark || !modeSpecificThemesEnabled()) MONET_BACKGROUND_SATURATION_DARK else MONET_BACKGROUND_SATURATION_LIGHT
+
+    fun backgroundLightnessKey(isDark: Boolean): String =
+        if (isDark || !modeSpecificThemesEnabled()) MONET_BACKGROUND_LIGHTNESS_DARK else MONET_BACKGROUND_LIGHTNESS_LIGHT
 
     @Deprecated("Use of shared preferences for saving custom styles is deprecated, use room database instead")
     const val SAVED_CUSTOM_MONET_STYLES = "savedCustomMonetStyles"
@@ -122,6 +120,8 @@ object Constant {
     const val DEVELOPER_MODE = "developerMode"
     const val COMMUNITY_VOTED_IDS = "communityVotedIds"
     const val COMMUNITY_LAST_FETCH = "communityLastFetch"
+    const val PER_APP_DEFAULTS_SEEDED = "perAppDefaultsSeeded"
+    const val SAMSUNG_PALETTE_ORIGINAL_STATE = "samsungPaletteOriginalState"
     const val COMMUNITY_WORKER_URL = "https://colorblendr-themes.drdisagree.workers.dev"
     const val TURNSTILE_SITE_KEY = "0x4AAAAAADzUgMuegUjZcG6j"
 
@@ -135,17 +135,37 @@ object Constant {
             WALLPAPER_COLOR_LIST,
             COMMUNITY_VOTED_IDS,
             COMMUNITY_LAST_FETCH,
+            PER_APP_DEFAULTS_SEEDED,
+            SAMSUNG_PALETTE_ORIGINAL_STATE,
             DEVELOPER_MODE
         )
     )
 
+
+    val STYLE_EXCLUDED_PREFS: Set<String> = HashSet(
+        listOf(
+            FABRICATED_OVERLAY_FOR_APPS_STATE,
+            SHOW_PER_APP_THEME_WARN,
+            SHOW_PALETTE_ROOT_HINT,
+            SHOW_PALETTE_ROOTLESS_HINT,
+            APP_LIST_FILTER_METHOD,
+            ADB_IP,
+            ADB_PAIRING_PORT,
+            SHIZUKU_THEMING_ENABLED,
+            WIRELESS_ADB_THEMING_ENABLED,
+            TASKER_INTEGRATION,
+            SCREEN_OFF_UPDATE_COLORS
+        )
+    )
 
     val ROOT_ONLY_PREFS: Set<String> = HashSet(
         listOf(
             MONET_ACCURATE_SHADES,
             MONET_PITCH_BLACK_THEME,
             TINT_TEXT_COLOR,
-            MANUAL_OVERRIDE_COLORS,
+            TOKEN_OVERRIDES,
+            LEGACY_TOKENS,
+            APP_COLOR_OVERRIDES,
             MONET_SECONDARY_COLOR,
             MONET_TERTIARY_COLOR,
             COLOR_SPEC_VERSION,

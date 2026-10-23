@@ -50,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
@@ -91,6 +92,9 @@ import com.drdisagree.colorblendr.ui.compose.screens.colors.ColorsScreen
 import com.drdisagree.colorblendr.ui.compose.screens.community.CommunityScreen
 import com.drdisagree.colorblendr.ui.compose.screens.community.CommunityThemeDetailsScreen
 import com.drdisagree.colorblendr.ui.compose.screens.palette.ColorPaletteScreen
+import com.drdisagree.colorblendr.ui.compose.screens.palette.ColorTokensScreen
+import com.drdisagree.colorblendr.ui.compose.screens.palette.TokenGuideScreen
+import com.drdisagree.colorblendr.ui.compose.screens.perapp.AppColorsScreen
 import com.drdisagree.colorblendr.ui.compose.screens.perapp.PerAppThemeScreen
 import com.drdisagree.colorblendr.ui.compose.screens.privacypolicy.PrivacyPolicyScreen
 import com.drdisagree.colorblendr.ui.compose.screens.settings.SettingsAdvancedScreen
@@ -110,11 +114,14 @@ import com.drdisagree.colorblendr.utils.app.AppUtil.openAppSettings
 import com.drdisagree.colorblendr.utils.app.AppUtil.permissionsGranted
 import com.drdisagree.colorblendr.utils.app.AppUtil.requestStoragePermission
 import com.drdisagree.colorblendr.utils.community.TestThemeHolder
+import com.drdisagree.colorblendr.utils.community.CommunityThemePalette
 import com.drdisagree.colorblendr.utils.community.communityColorScheme
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun HomeScreen(
@@ -135,7 +142,9 @@ fun HomeScreen(
 
     val backStackEntry by nestedNavController.currentBackStackEntryAsState()
 
-    val previewColors by PreviewController.previewColors.collectAsStateWithLifecycle()
+    val hasPreview by remember {
+        PreviewController.previewTheme.map { it != null }.distinctUntilChanged()
+    }.collectAsStateWithLifecycle(PreviewController.previewTheme.value != null)
     val isApplying by PreviewController.isApplying.collectAsStateWithLifecycle()
     var lastGroup by rememberSaveable { mutableIntStateOf(1) }
     val routeGroup = tabGroup(backStackEntry?.destination?.route)
@@ -161,7 +170,9 @@ fun HomeScreen(
     val isDark = isSystemInDarkTheme()
     val baseScheme = MaterialTheme.colorScheme
     val navBarScheme = remember(detailsTheme, isDark, baseScheme) {
-        detailsTheme?.let { communityColorScheme(it, isDark, baseScheme) } ?: baseScheme
+        detailsTheme?.let {
+            communityColorScheme(it, CommunityThemePalette.displayDark(it, isDark), baseScheme)
+        } ?: baseScheme
     }
 
     val permissionMustBeGrantedText = stringResource(R.string.permission_must_be_granted)
@@ -388,18 +399,19 @@ fun HomeScreen(
                         )
                 ) {
                     // Reserve room above preview FABs: 56dp FAB + 12dp margin + gap.
-                    val previewBottomInset by animateDpAsState(
-                        targetValue = if (previewColors != null && !isApplying) 80.dp else 0.dp,
+                    val previewBottomInset = animateDpAsState(
+                        targetValue = if (hasPreview && !isApplying) 80.dp else 0.dp,
                         animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
                         label = "previewBottomInset"
                     )
 
                     val navBottomInset = navBottomInset()
-
-                    CompositionLocalProvider(
+                    val bottomInset: () -> Dp = remember(previewBottomInset, navBottomInset) {
                         // Spatial spring can overshoot below zero; padding forbids it.
-                        LocalPreviewBottomInset provides previewBottomInset.coerceAtLeast(0.dp) + navBottomInset
-                    ) {
+                        { previewBottomInset.value.coerceAtLeast(0.dp) + navBottomInset }
+                    }
+
+                    CompositionLocalProvider(LocalPreviewBottomInset provides bottomInset) {
                         NavHost(
                             navController = nestedNavController,
                             startDestination = Routes.COLORS,
@@ -468,10 +480,34 @@ fun HomeScreen(
                             }
                             screen(Routes.COLOR_PALETTE) {
                                 ColorPaletteScreen(
-                                    colorPaletteViewModel = colorPaletteViewModel
+                                    colorPaletteViewModel = colorPaletteViewModel,
+                                    onNavigateToTokens = {
+                                        nestedNavController.navigateSingleTop(Routes.COLOR_TOKENS)
+                                    }
                                 )
                             }
-                            screen(Routes.PER_APP_THEME) { PerAppThemeScreen() }
+                            screen(Routes.COLOR_TOKENS) {
+                                ColorTokensScreen(
+                                    onOpenGuide = {
+                                        nestedNavController.navigateSingleTop(Routes.COLOR_TOKENS_GUIDE)
+                                    }
+                                )
+                            }
+                            screen(Routes.COLOR_TOKENS_GUIDE) { TokenGuideScreen() }
+                            screen(Routes.PER_APP_THEME) {
+                                PerAppThemeScreen(
+                                    onEditColors = { packageName ->
+                                        nestedNavController.navigateSingleTop(
+                                            "${Routes.APP_COLORS_BASE}/$packageName"
+                                        )
+                                    }
+                                )
+                            }
+                            screen(Routes.APP_COLORS) { entry ->
+                                entry.arguments?.getString("packageName")?.let { packageName ->
+                                    AppColorsScreen(packageName = packageName)
+                                }
+                            }
                             screen(Routes.SETTINGS_ADVANCED) {
                                 SettingsAdvancedScreen(
                                     onNavigateToPerAppTheme = {
@@ -509,7 +545,7 @@ fun HomeScreen(
                         label = "previewFabSnackbarPush"
                     )
                     PreviewActionButtons(
-                        visible = previewColors != null && !isApplying,
+                        visible = hasPreview && !isApplying,
                         onApply = { scope.launch { PreviewController.applyChanges() } },
                         onDiscard = { scope.launch { PreviewController.discardChanges() } },
                         modifier = Modifier

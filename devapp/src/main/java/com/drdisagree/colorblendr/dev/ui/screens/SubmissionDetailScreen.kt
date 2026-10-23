@@ -83,7 +83,7 @@ fun SubmissionDetailScreen(
     onApprove: () -> Unit,
     onReject: () -> Unit,
     onBlock: (String) -> Unit,
-    onEdit: (String, String) -> Unit
+    onEdit: (String, String, String) -> Unit
 ) {
     val payload = remember(item.payloadJson) { ThemePayloadDecoder.decode(item.payloadJson) }
     var confirmApprove by remember { mutableStateOf(false) }
@@ -127,9 +127,9 @@ fun SubmissionDetailScreen(
             target = item,
             description = payload?.description.orEmpty(),
             onDismiss = { showEdit = false },
-            onConfirm = { name, description ->
+            onConfirm = { name, description, author ->
                 showEdit = false
-                onEdit(name, description)
+                onEdit(name, description, author)
             }
         )
     }
@@ -402,6 +402,26 @@ fun SubmissionDetailScreen(
                             payload.overrideCount.toString()
                         )
                     }
+                    if (payload.tokenOverrides.isNotEmpty()) {
+                        InfoRow(
+                            stringResource(R.string.detail_token_overrides),
+                            stringResource(
+                                R.string.detail_token_overrides_value,
+                                ThemePayloadDecoder.tokenOverrideCount(payload.tokenOverrides, ThemePayloadDecoder.LIGHT),
+                                ThemePayloadDecoder.tokenOverrideCount(payload.tokenOverrides, ThemePayloadDecoder.DARK)
+                            )
+                        )
+                    }
+                    InfoRow(
+                        stringResource(R.string.detail_schema),
+                        stringResource(
+                            when {
+                                payload.schemaVersion >= 2 -> R.string.detail_schema_v2
+                                payload.engineVersion >= 2 -> R.string.detail_schema_tokens
+                                else -> R.string.detail_schema_legacy
+                            }
+                        )
+                    )
                 }
                 item.seedColor?.let {
                     ColorInfoRow(stringResource(R.string.detail_seed), it)
@@ -414,6 +434,12 @@ fun SubmissionDetailScreen(
                 }
                 if (payload != null) {
                     BoolInfoRow(stringResource(R.string.detail_pitch_black), payload.pitchBlack)
+                    if (payload.pitchBlack) {
+                        BoolInfoRow(
+                            stringResource(R.string.detail_pitch_black_containers),
+                            payload.pitchBlackContainers
+                        )
+                    }
                     BoolInfoRow(stringResource(R.string.detail_tint_text), payload.tintText)
                     BoolInfoRow(
                         stringResource(R.string.detail_accurate_shades),
@@ -608,7 +634,7 @@ private fun SubmissionDetailScreenPreview() {
             onApprove = {},
             onReject = {},
             onBlock = {},
-            onEdit = { _, _ -> }
+            onEdit = { _, _, _ -> }
         )
     }
 }

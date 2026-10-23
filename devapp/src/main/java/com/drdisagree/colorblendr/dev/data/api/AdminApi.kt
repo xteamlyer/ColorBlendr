@@ -4,6 +4,8 @@ import androidx.core.graphics.toColorInt
 import com.drdisagree.colorblendr.dev.data.models.BlockedEntry
 import com.drdisagree.colorblendr.dev.data.models.ComparableTheme
 import com.drdisagree.colorblendr.dev.data.models.PendingSubmission
+import com.drdisagree.colorblendr.dev.utils.ThemePayloadDecoder
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -12,7 +14,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
 
 object AdminApi {
 
@@ -96,6 +97,8 @@ object AdminApi {
                             pitchBlack = entry.optBoolean("pitchBlack", false),
                             tintText = entry.optBoolean("tintText", true),
                             colorOverrides = parseColorOverrides(entry.optJSONObject("colorOverrides")),
+                            tokenOverrides = ThemePayloadDecoder.tokenOverrides(entry.optJSONObject("tokenOverrides")),
+                            pitchBlackContainers = entry.optBoolean("pitchBlackContainers", false),
                             payloadJson = entry.toString(),
                             isPublished = true
                         )
@@ -129,11 +132,13 @@ object AdminApi {
         adminKey: String,
         id: String,
         name: String? = null,
-        description: String? = null
+        description: String? = null,
+        author: String? = null
     ): ApiResult<String> {
         val payload = JSONObject().put("id", id)
         name?.let { payload.put("name", it) }
         description?.let { payload.put("description", it) }
+        author?.let { payload.put("author", it) }
         return execute(post("approve", adminKey, payload)) { body ->
             JSONObject(body).optString("prUrl").takeIf { it.isNotEmpty() }
         }
