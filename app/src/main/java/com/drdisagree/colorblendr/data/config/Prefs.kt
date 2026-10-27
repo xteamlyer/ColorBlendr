@@ -11,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArraySet
 @Suppress("unused")
 object Prefs {
 
-    private val TAG: String = Prefs::class.java.simpleName
+    private val TAG: String = "Prefs"
 
     private val prefs: SharedPreferences by lazy {
         val context = runCatching { appContext.createDeviceProtectedStorageContext() }
@@ -200,6 +200,9 @@ object Prefs {
 
     fun getCommittedString(key: String, defValue: String? = null): String? =
         prefs.getString(key, defValue)
+
+    fun getCommittedBoolean(key: String, defValue: Boolean): Boolean =
+        prefs.getBoolean(key, defValue)
 
     fun getString(key: String): String? = getString(key, null)
 
