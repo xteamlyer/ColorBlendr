@@ -56,8 +56,6 @@ object Constant {
     const val SCREEN_OFF_UPDATE_COLORS = "screenOffUpdateColors"
     const val TASKER_INTEGRATION = "taskerIntegration"
     const val COLOR_SPEC_VERSION = "colorSpecVersion"
-    const val DARKER_LAUNCHER_ICONS = "darkerLauncherIcons"
-    const val SEMI_TRANSPARENT_LAUNCHER_ICONS = "semiTransparentLauncherIcons"
     const val FORCE_PITCH_BLACK_SETTINGS = "forcePitchBlackSettings"
     const val MONET_ACCURATE_SHADES = "monetAccurateShades"
     const val MONET_PITCH_BLACK_THEME = "monetPitchBlackTheme"
@@ -121,7 +119,8 @@ object Constant {
     const val DEVELOPER_MODE = "developerMode"
     const val COMMUNITY_VOTED_IDS = "communityVotedIds"
     const val COMMUNITY_LAST_FETCH = "communityLastFetch"
-    const val PER_APP_DEFAULTS_SEEDED = "perAppDefaultsSeeded"
+    const val PITCH_BLACK_AUTO_SELECTED_APPS = "pitchBlackAutoSelectedApps"
+    const val PITCH_BLACK_DECLINED_APPS = "pitchBlackDeclinedApps"
     const val SAMSUNG_PALETTE_ORIGINAL_STATE = "samsungPaletteOriginalState"
     const val COMMUNITY_WORKER_URL = "https://colorblendr-themes.drdisagree.workers.dev"
     const val TURNSTILE_SITE_KEY = "0x4AAAAAADzUgMuegUjZcG6j"
@@ -136,7 +135,7 @@ object Constant {
             WALLPAPER_COLOR_LIST,
             COMMUNITY_VOTED_IDS,
             COMMUNITY_LAST_FETCH,
-            PER_APP_DEFAULTS_SEEDED,
+            PITCH_BLACK_AUTO_SELECTED_APPS,
             SAMSUNG_PALETTE_ORIGINAL_STATE,
             DEVELOPER_MODE
         )
@@ -146,6 +145,7 @@ object Constant {
     val STYLE_EXCLUDED_PREFS: Set<String> = HashSet(
         listOf(
             FABRICATED_OVERLAY_FOR_APPS_STATE,
+            PITCH_BLACK_DECLINED_APPS,
             SHOW_PER_APP_THEME_WARN,
             SHOW_PALETTE_ROOT_HINT,
             SHOW_PALETTE_ROOTLESS_HINT,
@@ -173,10 +173,9 @@ object Constant {
             MONET_TERTIARY_COLOR,
             COLOR_SPEC_VERSION,
             MODE_SPECIFIC_THEMES,
-            DARKER_LAUNCHER_ICONS,
-            SEMI_TRANSPARENT_LAUNCHER_ICONS,
             FORCE_PITCH_BLACK_SETTINGS,
             FABRICATED_OVERLAY_FOR_APPS_STATE,
+            PITCH_BLACK_DECLINED_APPS,
             CUSTOM_MONET_STYLE,
             MONET_STYLE_ORIGINAL_NAME,
             MONET_ACCENT_SATURATION_DARK,

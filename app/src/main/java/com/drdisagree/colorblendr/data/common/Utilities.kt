@@ -8,7 +8,6 @@ import com.drdisagree.colorblendr.data.common.Constant.APP_COLOR_OVERRIDES
 import com.drdisagree.colorblendr.data.common.Constant.APP_LIST_FILTER_METHOD
 import com.drdisagree.colorblendr.data.common.Constant.COLOR_SPEC_VERSION
 import com.drdisagree.colorblendr.data.common.Constant.CUSTOM_MONET_STYLE
-import com.drdisagree.colorblendr.data.common.Constant.DARKER_LAUNCHER_ICONS
 import com.drdisagree.colorblendr.data.common.Constant.DEVELOPER_MODE
 import com.drdisagree.colorblendr.data.common.Constant.FABRICATED_OVERLAY_FOR_APPS_STATE
 import com.drdisagree.colorblendr.data.common.Constant.FIRST_RUN
@@ -26,11 +25,11 @@ import com.drdisagree.colorblendr.data.common.Constant.MONET_SEED_COLOR_ENABLED
 import com.drdisagree.colorblendr.data.common.Constant.MONET_STYLE
 import com.drdisagree.colorblendr.data.common.Constant.MONET_STYLE_ORIGINAL_NAME
 import com.drdisagree.colorblendr.data.common.Constant.MONET_TERTIARY_COLOR
-import com.drdisagree.colorblendr.data.common.Constant.PER_APP_DEFAULTS_SEEDED
+import com.drdisagree.colorblendr.data.common.Constant.PITCH_BLACK_AUTO_SELECTED_APPS
+import com.drdisagree.colorblendr.data.common.Constant.PITCH_BLACK_DECLINED_APPS
 import com.drdisagree.colorblendr.data.common.Constant.PREF_WORKING_METHOD
 import com.drdisagree.colorblendr.data.common.Constant.SAMSUNG_PALETTE_ORIGINAL_STATE
 import com.drdisagree.colorblendr.data.common.Constant.SCREEN_OFF_UPDATE_COLORS
-import com.drdisagree.colorblendr.data.common.Constant.SEMI_TRANSPARENT_LAUNCHER_ICONS
 import com.drdisagree.colorblendr.data.common.Constant.SHIZUKU_THEMING_ENABLED
 import com.drdisagree.colorblendr.data.common.Constant.SHOW_PALETTE_ROOTLESS_HINT
 import com.drdisagree.colorblendr.data.common.Constant.SHOW_PALETTE_ROOT_HINT
@@ -89,12 +88,32 @@ object Utilities {
         putBoolean(THEMING_ENABLED, enabled)
     }
 
-    fun perAppDefaultsSeeded(): Boolean {
-        return getBoolean(PER_APP_DEFAULTS_SEEDED, false)
+    fun getPitchBlackAutoSelectedApps(): Set<String>? =
+        getString(PITCH_BLACK_AUTO_SELECTED_APPS, null)
+            ?.split(',')
+            ?.filter { it.isNotEmpty() }
+            ?.toSet()
+
+    fun setPitchBlackAutoSelectedApps(packages: Set<String>?) {
+        if (packages == null) {
+            clearPref(PITCH_BLACK_AUTO_SELECTED_APPS)
+        } else {
+            putString(PITCH_BLACK_AUTO_SELECTED_APPS, packages.joinToString(","))
+        }
     }
 
-    fun setPerAppDefaultsSeeded(seeded: Boolean) {
-        putBoolean(PER_APP_DEFAULTS_SEEDED, seeded)
+    fun getPitchBlackDeclinedApps(): Set<String> = getString(PITCH_BLACK_DECLINED_APPS, null)
+        ?.split(',')
+        ?.filter { it.isNotEmpty() }
+        ?.toSet()
+        .orEmpty()
+
+    fun setPitchBlackDeclinedApps(packages: Set<String>) {
+        if (packages.isEmpty()) {
+            clearPref(PITCH_BLACK_DECLINED_APPS)
+        } else {
+            putString(PITCH_BLACK_DECLINED_APPS, packages.joinToString(","))
+        }
     }
 
     fun getSamsungPaletteOriginalState(): Boolean? {
@@ -221,22 +240,6 @@ object Utilities {
 
     fun setColorSpecVersion(version: Int) {
         putInt(COLOR_SPEC_VERSION, version)
-    }
-
-    fun darkerLauncherIconsEnabled(): Boolean {
-        return getBoolean(DARKER_LAUNCHER_ICONS, false)
-    }
-
-    fun setDarkerLauncherIconsEnabled(enabled: Boolean) {
-        putBoolean(DARKER_LAUNCHER_ICONS, enabled)
-    }
-
-    fun semiTransparentLauncherIconsEnabled(): Boolean {
-        return getBoolean(SEMI_TRANSPARENT_LAUNCHER_ICONS, false)
-    }
-
-    fun setSemiTransparentLauncherIconsEnabled(enabled: Boolean) {
-        putBoolean(SEMI_TRANSPARENT_LAUNCHER_ICONS, enabled)
     }
 
     fun forcePitchBlackSettingsEnabled(): Boolean {
